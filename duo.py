@@ -118,6 +118,7 @@ class Duo:
                 note["lexeme_image"] = str(detail["lexeme_image"])
                 note["canonical_path"] = str(detail["canonical_path"])
                 note["gender"] = str(word["gender"])
+
                 if detail["tts"]:
                     try:
                         audio_path = os.path.join(MEDIA_FOLDER, f"duolingo-{detail['from_language']}-{detail['lexeme_id']}.ogg")
@@ -168,8 +169,3 @@ if not is_anki:
     print("fsfd")
     duo = Duo(mw)
     duo.learned_words()
-
-"""website = requests.get("https://www.duolingo.com/api/1/dictionary_page?lexeme_id=5f514739434d886930fb8ff6fd6c312a&use_cache=false&from_language_id=en", cookies=duo.cookies,
-                       headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36'})
-# print(json.dumps(json.loads(website.text), indent=2))
-"""

@@ -200,7 +200,7 @@ def all_imported_words():
         files = [open(file.path, "r", encoding="utf-8").read().split("\n") for file in files]
         words = [x.strip() for file in files for x in file if (x and not x[0] == "#")]
         return list(set(words))
-
+i
 
 def update_tampermonkey_list():
     """Refresh the list of all imported words that the tampermonkey script reads"""

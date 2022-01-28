@@ -18,15 +18,4 @@ def get_os_name():
 # save OS name to variable. It doesn't change
 os_name = get_os_name()
 
-NOTE_TYPE_NAME = "__English (from Dict.cc) (new)"
-NOTE_TYPE_FIELDS = {"Englisch", "Deutsch 1", "Bild", "Audio", "IPA", "Häufigkeit"}
-
-# Folders and paths
-
-BASE_FOLDER = r"/hdd/Software Engineering/.files/2021-09-23 Dict.cc und Cambridge Importer" if os_name == "Linux" else r"E:\.files\2021-09-23 Dict.cc und Cambridge Importer"
-DONE_FOLDER = join(BASE_FOLDER, "imported_done")
-EW_FOLDER = join(BASE_FOLDER, "dict cc crawled vocabulary", "Wörter")
 MEDIA_FOLDER = r"/home/robin/.local/share/Anki2/Benutzer 1/collection.media" if os_name == "Linux" else r"Z:\Documents\AnkiData\User 1\collection.media"
-
-EDIT_WORDS_SEPERATOR = "    ~    "
-EDIT_WORDS_SEPERATOR_BASIC = "~"
