@@ -3,13 +3,6 @@ from aqt import gui_hooks
 
 from .utils import *
 from .duo import *
-import_task = None
-unsuspend_timer = None
-
-
-def start_import():
-    global import_task
-    import_task = ImportEwFromCambridge()
 
 
 def init():
