@@ -1,4 +1,8 @@
+import sys
+from dataclasses import dataclass
+
 from .private import cookies
+
 is_anki = True
 if is_anki:
     from .duo_utils import *
@@ -18,6 +22,32 @@ Fragen:
 -Wachsen die alternative_forms mit den fortschreitenden Fähigkeiten-niveaus?  
 
 """
+
+
+@dataclass
+class Sentence:
+    text: str
+    translation: str
+    words: [str]
+    md5: str
+    occurrences: int
+    score: float = 0
+
+    def known_score(self):
+        self.score = self.occurrences / len(self.text.split(" "))
+        return self.score
+
+
+sentence_ocurrences: dict[str, Sentence] = {}
+
+
+def log_sentence_occurence(text, translation, word):
+    md5 = hashlib.md5(str([text, translation]).encode('utf-8')).hexdigest()
+    if md5 in sentence_ocurrences:
+        sentence_ocurrences[md5].occurrences += 1
+        sentence_ocurrences[md5].words.append(word)
+    else:
+        sentence_ocurrences[md5] = Sentence(text, translation, [word], md5, 1, 0)
 
 
 class Duo:
@@ -69,12 +99,12 @@ class Duo:
                 mw.col.models.save(model)
                 # Create notes for alternative forms
                 for form in detail["alternative_forms"]:
-                    md5 = hashlib.md5(str([form["text"], ["translation_text"]]).encode('utf-8')).hexdigest()
+                    log_sentence_occurence(form["text"], form["translation_text"], word["word_string"])
+                    md5 = hashlib.md5(str([form["text"], form["translation_text"]]).encode('utf-8')).hexdigest()
                     if md5 in imported_sentences_md5_hashes:
                         print(f"skipping sentence, it has already been imported (md5:{md5})")
                         continue
                     imported_sentences_md5_hashes.append(md5)
-
 
                     note = mw.col.newNote()
 
@@ -158,6 +188,9 @@ class Duo:
                 mw.col.addNote(note)
 
                 tooltip("All words imported!")
+        with open("/home/robin/.local/share/Anki2/addons21/duolingo import/ranked by score.json","w+",encoding="utf-8") as file:
+            file.write(json.dumps([x.__dict__ for x in sorted(sentence_ocurrences.values(), key=lambda x: x.known_score(), reverse=True)],indent=2))
+        print(json.dumps([x.__dict__ for x in sorted(sentence_ocurrences.values(), key=lambda x: x.known_score(), reverse=True)[:100]],indent=2))
 
 
 if not is_anki:
