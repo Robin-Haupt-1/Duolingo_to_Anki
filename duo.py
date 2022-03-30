@@ -71,6 +71,7 @@ class Duo:
                     if md5 in imported_sentences_md5_hashes:
                         print(f"skipping sentence, it has already been imported (md5:{md5})")
                         continue
+                    imported_sentences_md5_hashes.append(md5)
 
                     note = mw.col.newNote()
 
