@@ -67,6 +67,7 @@ class Duo:
                 mw.col.models.save(model)
                 # Create notes for alternative forms
                 for form in detail["alternative_forms"]:
+                    md5 = hashlib.md5(str([form["text"], ["translation_text"]]).encode('utf-8')).hexdigest()
                     continue
 
                     note = mw.col.newNote()
