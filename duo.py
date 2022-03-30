@@ -26,21 +26,23 @@ class Duo:
     def __init__(self, mw):
         self.cookies = cookies
 
-        self.headers =  {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36'}
+        self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36'}
         self.mw = mw
 
     def learned_words(self):
         website = requests.get("https://www.duolingo.com/vocabulary/overview?", cookies=self.cookies, headers=self.headers).text
         # print(json.dumps(json.loads(website), indent=2))
         words = json.loads(website)
-        WORDS_DECK_NAME=f'Duolingo {words["language_string"]}'
-        SENTENCES_DECK_NAME=f'Duolingo {words["language_string"]} Alternative_forms'
-        print("Language: "+words["language_string"])
+        WORDS_DECK_NAME = f'Duolingo {words["language_string"]}'
+        SENTENCES_DECK_NAME = f'Duolingo {words["language_string"]} Alternative_forms'
+        print("Language: " + words["language_string"])
         # get already imported words
-        imported_words_ids=[ mw.col.get_note(note_id)["id"] for note_id in mw.col.find_notes(f'"deck:{WORDS_DECK_NAME}"')]
-        imported_sentences_md5_hashes=[ mw.col.get_note(note_id)["md5"] for note_id in mw.col.find_notes(f'"deck:{SENTENCES_DECK_NAME}"')]
+        imported_words_ids = [mw.col.get_note(note_id)["id"] for note_id in mw.col.find_notes(f'"deck:{WORDS_DECK_NAME}"')]
+        imported_sentences_md5_hashes = [mw.col.get_note(note_id)["md5"] for note_id in mw.col.find_notes(f'"deck:{SENTENCES_DECK_NAME}"')]
+        # print (imported_sentences_md5_hashes)
 
         for word in words["vocab_overview"]:
+
             print(word["normalized_string"])
 
             # load word details
@@ -73,6 +75,7 @@ class Duo:
                         continue
                     imported_sentences_md5_hashes.append(md5)
 
+
                     note = mw.col.newNote()
 
                     for field, value in form.items():
@@ -93,10 +96,10 @@ class Duo:
                             print(e)
 
                     mw.col.addNote(note)
-
                 if word["id"] in imported_words_ids:
                     print(f"skipping word, it has already been imported (id:{word['id']})")
                     continue
+
                 # Create the new notes
                 # Set the right deck (according to how common the word is) and model
                 selected_deck_id = mw.col.decks.id(WORDS_DECK_NAME)
@@ -113,7 +116,7 @@ class Duo:
                 note["word"] = detail["word"]
                 note["translations sorted"] = ", ".join(ens)
                 note["translations original"] = detail["translations"]
-                note["translations line break"] =  "<br><br>".join(ens)
+                note["translations line break"] = "<br><br>".join(ens)
 
                 note["id"] = str(word["id"])
                 note["lexeme_id"] = str(detail["lexeme_id"])
@@ -154,30 +157,10 @@ class Duo:
 
                 mw.col.addNote(note)
 
-                """            
-                                            for (name, value) in note.items():
-                                                if name in fields:
-                                                    note[name] = fields[name]
-                                            mw.col.addNote(note)
-                                            for card in note.cards():
-                                                card.queue = anki.consts.QUEUE_TYPE_SUSPENDED
-                                                card.flush()
-                """
                 tooltip("All words imported!")
-
-                continue
-                # test creating one card
-                try:
-                    audio_path = os.path.join(MEDIA_FOLDER, f"cambridge-{scrubbed}.ogg")
-                    with open(audio_path, "wb") as file:
-                        file.write(load_url(audio_url, True).content)
-                        fields["Audio"] = f'[sound:cambridge-{scrubbed}.ogg]'
-
-                except Exception as e:
-                    print(e)
 
 
 if not is_anki:
-    print("fsfd")
+    print("this is not running in anki")
     duo = Duo(mw)
     duo.learned_words()
