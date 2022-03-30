@@ -68,10 +68,11 @@ class Duo:
                 # Create notes for alternative forms
                 for form in detail["alternative_forms"]:
                     md5 = hashlib.md5(str([form["text"], ["translation_text"]]).encode('utf-8')).hexdigest()
-                    continue
+                    if md5 in imported_sentences_md5_hashes:
+                        print(f"skipping sentence, it has already been imported (md5:{md5})")
+                        continue
 
                     note = mw.col.newNote()
-                    md5=hashlib.md5(str(form).encode('utf-8')).hexdigest()
 
                     for field, value in form.items():
                         note[field] = str(value)
@@ -79,7 +80,7 @@ class Duo:
                     note["parent lexeme_id"] = str(detail["lexeme_id"])
                     note["parent learning_language"] = str(detail["learning_language"])
                     note["parent from_language"] = str(detail["from_language"])
-                    note["md5"]=md5
+                    note["md5"] = md5
                     if form["tts"]:
                         try:
                             audio_path = os.path.join(MEDIA_FOLDER, f"duolingo-{detail['from_language']}-alternative-form-{md5}.ogg")
@@ -92,6 +93,9 @@ class Duo:
 
                     mw.col.addNote(note)
 
+                if word["id"] in imported_words_ids:
+                    print(f"skipping word, it has already been imported (id:{word['id']})")
+                    continue
                 # Create the new notes
                 # Set the right deck (according to how common the word is) and model
                 selected_deck_id = mw.col.decks.id(WORDS_DECK_NAME)
