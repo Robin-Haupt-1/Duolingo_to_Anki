@@ -36,6 +36,9 @@ class Duo:
         WORDS_DECK_NAME=f'Duolingo {words["language_string"]}'
         SENTENCES_DECK_NAME=f'Duolingo {words["language_string"]} Alternative_forms'
         print("Language: "+words["language_string"])
+        # get already imported words
+        imported_words_ids=[ mw.col.get_note(note_id)["id"] for note_id in mw.col.find_notes(f'"deck:{WORDS_DECK_NAME}"')]
+        imported_sentences_md5_hashes=[ mw.col.get_note(note_id)["md5"] for note_id in mw.col.find_notes(f'"deck:{SENTENCES_DECK_NAME}"')]
 
         for word in words["vocab_overview"]:
             print(word["normalized_string"])
