@@ -33,6 +33,8 @@ class Duo:
         website = requests.get("https://www.duolingo.com/vocabulary/overview?", cookies=self.cookies, headers=self.headers).text
         # print(json.dumps(json.loads(website), indent=2))
         words = json.loads(website)
+        WORDS_DECK_NAME=f'Duolingo {words["language_string"]}'
+        SENTENCES_DECK_NAME=f'Duolingo {words["language_string"]} Alternative_forms'
         print("Language: "+words["language_string"])
 
         for word in words["vocab_overview"]:
@@ -52,7 +54,7 @@ class Duo:
 
             if is_anki:
                 # Set the right deck (according to how common the word is) and model
-                selected_deck_id = mw.col.decks.id("Duolingo Russisch Alternative_forms")
+                selected_deck_id = mw.col.decks.id(SENTENCES_DECK_NAME)
                 mw.col.decks.select(selected_deck_id)
                 model = mw.col.models.by_name("Duo Alternative_forms")
                 deck = mw.col.decks.get(selected_deck_id)
@@ -88,7 +90,7 @@ class Duo:
 
                 # Create the new notes
                 # Set the right deck (according to how common the word is) and model
-                selected_deck_id = mw.col.decks.id("Duolingo Russisch")
+                selected_deck_id = mw.col.decks.id(WORDS_DECK_NAME)
                 mw.col.decks.select(selected_deck_id)
                 model = mw.col.models.by_name("Duo Russisch")
                 deck = mw.col.decks.get(selected_deck_id)
