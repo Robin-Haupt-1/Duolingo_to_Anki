@@ -33,6 +33,7 @@ class Duo:
         website = requests.get("https://www.duolingo.com/vocabulary/overview?", cookies=self.cookies, headers=self.headers).text
         # print(json.dumps(json.loads(website), indent=2))
         words = json.loads(website)
+        print("Language: "+words["language_string"])
 
         for word in words["vocab_overview"]:
             print(word["normalized_string"])
