@@ -38,26 +38,23 @@ class Sentence:
         return self.score
 
 
-sentence_ocurrences: dict[str, Sentence] = {}
-
-
-def log_sentence_occurence(text, translation, word):
-    md5 = hashlib.md5(str([text, translation]).encode('utf-8')).hexdigest()
-    if md5 in sentence_ocurrences:
-        sentence_ocurrences[md5].occurrences += 1
-        sentence_ocurrences[md5].words.append(word)
-    else:
-        sentence_ocurrences[md5] = Sentence(text, translation, [word], md5, 1, 0)
-
-
 class Duo:
     """Read learned words and their data from Duolingo"""
+    sentence_ocurrences: dict[str, Sentence] = {}
 
     def __init__(self, mw):
         self.cookies = cookies
 
         self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36'}
         self.mw = mw
+
+    def log_sentence_occurence(self, text, translation, word):
+        md5 = hashlib.md5(str([text, translation]).encode('utf-8')).hexdigest()
+        if md5 in self.sentence_ocurrences:
+            self.sentence_ocurrences[md5].occurrences += 1
+            self.sentence_ocurrences[md5].words.append(word)
+        else:
+            self.sentence_ocurrences[md5] = Sentence(text, translation, [word], md5, 1, 0)
 
     def learned_words(self):
         website = requests.get("https://www.duolingo.com/vocabulary/overview?", cookies=self.cookies, headers=self.headers).text
@@ -99,7 +96,7 @@ class Duo:
                 mw.col.models.save(model)
                 # Create notes for alternative forms
                 for form in detail["alternative_forms"]:
-                    log_sentence_occurence(form["text"], form["translation_text"], word["word_string"])
+                    self.log_sentence_occurence(form["text"], form["translation_text"], word["word_string"])
                     md5 = hashlib.md5(str([form["text"], form["translation_text"]]).encode('utf-8')).hexdigest()
                     if md5 in imported_sentences_md5_hashes:
                         print(f"skipping sentence, it has already been imported (md5:{md5})")
@@ -131,7 +128,6 @@ class Duo:
                     continue
 
                 # Create the new notes
-                # Set the right deck (according to how common the word is) and model
                 selected_deck_id = mw.col.decks.id(WORDS_DECK_NAME)
                 mw.col.decks.select(selected_deck_id)
                 model = mw.col.models.by_name("Duo Russisch")
@@ -188,9 +184,12 @@ class Duo:
                 mw.col.addNote(note)
 
                 tooltip("All words imported!")
-        with open("/home/robin/.local/share/Anki2/addons21/duolingo import/ranked by score.json","w+",encoding="utf-8") as file:
-            file.write(json.dumps([x.__dict__ for x in sorted(sentence_ocurrences.values(), key=lambda x: x.known_score(), reverse=True)],indent=2))
-        print(json.dumps([x.__dict__ for x in sorted(sentence_ocurrences.values(), key=lambda x: x.known_score(), reverse=True)[:100]],indent=2))
+        with open("/home/robin/.local/share/Anki2/addons21/duolingo import/ranked by score.json", "w+", encoding="utf-8") as file:
+            file.write(json.dumps([x.__dict__ for x in sorted(self.sentence_ocurrences.values(), key=lambda x: x.known_score(), reverse=True)], indent=2))
+        with open("/home/robin/.local/share/Anki2/addons21/duolingo import/ranked by occurrences.json", "w+", encoding="utf-8") as file:
+            file.write(json.dumps([x.__dict__ for x in sorted(self.sentence_ocurrences.values(), key=lambda x: x.occurrences, reverse=True)], indent=2))
+        print(json.dumps([x.__dict__ for x in sorted(self.sentence_ocurrences.values(), key=lambda x: x.known_score(), reverse=True)[:100]], indent=2))
+
 
 
 if not is_anki:
