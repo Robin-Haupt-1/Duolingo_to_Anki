@@ -41,6 +41,8 @@ class Sentence:
 class Duo:
     """Read learned words and their data from Duolingo"""
     sentence_ocurrences: dict[str, Sentence] = {}
+    WORDS_DECK_NAME:str
+    SENTENCES_DECK_NAME:str
 
     def __init__(self, mw):
         self.cookies = cookies
@@ -60,12 +62,12 @@ class Duo:
         website = requests.get("https://www.duolingo.com/vocabulary/overview?", cookies=self.cookies, headers=self.headers).text
         # print(json.dumps(json.loads(website), indent=2))
         words = json.loads(website)
-        WORDS_DECK_NAME = f'Duolingo {words["language_string"]}'
-        SENTENCES_DECK_NAME = f'Duolingo {words["language_string"]} Alternative_forms'
+        self.WORDS_DECK_NAME = f'Duolingo {words["language_string"]}'
+        self.SENTENCES_DECK_NAME = f'Duolingo {words["language_string"]} Alternative_forms'
         print("Language: " + words["language_string"])
         # get already imported words
-        imported_words_ids = [mw.col.get_note(note_id)["id"] for note_id in mw.col.find_notes(f'"deck:{WORDS_DECK_NAME}"')]
-        imported_sentences_md5_hashes = [mw.col.get_note(note_id)["md5"] for note_id in mw.col.find_notes(f'"deck:{SENTENCES_DECK_NAME}"')]
+        imported_words_ids = [mw.col.get_note(note_id)["id"] for note_id in mw.col.find_notes(f'"deck:{self.WORDS_DECK_NAME}"')]
+        imported_sentences_md5_hashes = [mw.col.get_note(note_id)["md5"] for note_id in mw.col.find_notes(f'"deck:{self.SENTENCES_DECK_NAME}"')]
         # print (imported_sentences_md5_hashes)
 
         for word in words["vocab_overview"]:
@@ -86,7 +88,7 @@ class Duo:
 
             if is_anki:
                 # Set the right deck (according to how common the word is) and model
-                selected_deck_id = mw.col.decks.id(SENTENCES_DECK_NAME)
+                selected_deck_id = mw.col.decks.id(self.SENTENCES_DECK_NAME)
                 mw.col.decks.select(selected_deck_id)
                 model = mw.col.models.by_name("Duo Alternative_forms")
                 deck = mw.col.decks.get(selected_deck_id)
@@ -128,7 +130,7 @@ class Duo:
                     continue
 
                 # Create the new notes
-                selected_deck_id = mw.col.decks.id(WORDS_DECK_NAME)
+                selected_deck_id = mw.col.decks.id(self.WORDS_DECK_NAME)
                 mw.col.decks.select(selected_deck_id)
                 model = mw.col.models.by_name("Duo Russisch")
                 deck = mw.col.decks.get(selected_deck_id)
