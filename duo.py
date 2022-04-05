@@ -1,6 +1,6 @@
 import sys
 from dataclasses import dataclass
-
+from anki import consts
 from .private import cookies
 
 is_anki = True
@@ -41,8 +41,8 @@ class Sentence:
 class Duo:
     """Read learned words and their data from Duolingo"""
     sentence_ocurrences: dict[str, Sentence] = {}
-    WORDS_DECK_NAME:str
-    SENTENCES_DECK_NAME:str
+    WORDS_DECK_NAME: str
+    SENTENCES_DECK_NAME: str
 
     def __init__(self, mw):
         self.cookies = cookies
@@ -57,6 +57,14 @@ class Duo:
             self.sentence_ocurrences[md5].words.append(word)
         else:
             self.sentence_ocurrences[md5] = Sentence(text, translation, [word], md5, 1, 0)
+
+    def get_sentence_occurrences(self, md5):
+        if md5 in self.sentence_ocurrences:
+            return self.sentence_ocurrences[md5]
+        else:
+            print("A sentence does not have any occurrences after card updating!")
+            print("Sentence: " + md5)
+            return 0
 
     def learned_words(self):
         website = requests.get("https://www.duolingo.com/vocabulary/overview?", cookies=self.cookies, headers=self.headers).text
@@ -186,12 +194,55 @@ class Duo:
                 mw.col.addNote(note)
 
                 tooltip("All words imported!")
+
         with open("/home/robin/.local/share/Anki2/addons21/duolingo import/ranked by score.json", "w+", encoding="utf-8") as file:
             file.write(json.dumps([x.__dict__ for x in sorted(self.sentence_ocurrences.values(), key=lambda x: x.known_score(), reverse=True)], indent=2))
         with open("/home/robin/.local/share/Anki2/addons21/duolingo import/ranked by occurrences.json", "w+", encoding="utf-8") as file:
             file.write(json.dumps([x.__dict__ for x in sorted(self.sentence_ocurrences.values(), key=lambda x: x.occurrences, reverse=True)], indent=2))
         print(json.dumps([x.__dict__ for x in sorted(self.sentence_ocurrences.values(), key=lambda x: x.known_score(), reverse=True)[:100]], indent=2))
+        self.update_occurrences()
+        self.sentence_ocurrences = {}
 
+        # update information on occurrences in notes
+
+    def update_occurrences(self):
+        """Delay new cards for a few days (with specific settings for different decks) and activate them again after the specified time has passed"""
+
+        deck_config = [{"deck": "All::1) Sprachen::💬 Begriffe", "delay": 3}, {"deck": "All::1) Sprachen::🇺🇸 Englisch::_New", "delay": 6}, {"deck": "All::1) Sprachen::🇺🇸 Englisch::_New (rare)", "delay": 3}, {"deck": "All", "delay": 1}]
+        seen_cards = []
+
+        all_notes = mw.col.find_notes(f'"deck:{self.SENTENCES_DECK_NAME}"')
+
+        for note_id in all_notes:
+            note = mw.col.get_note(note_id)
+            note_occurrences = note["sentence_occurrences"]
+            try:
+                note_occurrences = int(note_occurrences)
+            except:
+                note_occurrences = -1
+            current_occurrences = self.get_sentence_occurrences(note["md5"]).occurrences
+            if current_occurrences != note_occurrences:
+
+                print(f'{note_occurrences} occurrences for sentence {note["md5"]} ({note["text"]}) saved in card, {current_occurrences} found in Duolingo data')
+                print("Updating note and enabling its cards")
+
+                note["sentence_occurrences"] = str(current_occurrences)
+                note.flush()
+
+                for card in note.cards():
+                    if card.queue == anki.consts.QUEUE_TYPE_SUSPENDED:
+                        #  Reset the card to 'new'
+                        #  I copied the card parameters to be reset from AnkiConnect's forgetCard() function: collection().db.execute('update cards set type=0, queue=0, left=0, ivl=0, due=0, odue=0, factor=0 where id in ' + scids)
+                        card.queue = anki.consts.QUEUE_TYPE_NEW
+                        card.due = 0
+                        card.ivl = 0
+                        card.odue = 0
+                        card.type = anki.consts.CARD_TYPE_NEW
+                        card.factor = 0
+                        card.left = 0
+                        card.flush()
+                        print(f'Enabled card id {card.id} ({note["text"]})')
+ 
 
 
 if not is_anki:
