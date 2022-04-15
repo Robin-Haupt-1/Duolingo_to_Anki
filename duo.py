@@ -211,7 +211,7 @@ class Duo:
         deck_config = [{"deck": "All::1) Sprachen::💬 Begriffe", "delay": 3}, {"deck": "All::1) Sprachen::🇺🇸 Englisch::_New", "delay": 6}, {"deck": "All::1) Sprachen::🇺🇸 Englisch::_New (rare)", "delay": 3}, {"deck": "All", "delay": 1}]
         seen_cards = []
 
-        all_notes = mw.col.find_notes(f'"deck:{self.SENTENCES_DECK_NAME}"')
+        all_notes = mw.col.find_notes(f'"deck:{self.SENTENCES_DECK_NAME}" is:suspended')
 
         for note_id in all_notes:
             note = mw.col.get_note(note_id)
@@ -242,7 +242,6 @@ class Duo:
                         card.left = 0
                         card.flush()
                         print(f'Enabled card id {card.id} ({note["text"]})')
- 
 
 
 if not is_anki:
