@@ -64,7 +64,7 @@ class Duo:
         else:
             print("A sentence does not have any occurrences after card updating!")
             print("Sentence: " + md5)
-            return 0
+            return Sentence(occurrences=-1, md5="md5", score=-1, text="Unknown", translation="Unknown", words=[])
 
     def learned_words(self):
         website = requests.get("https://www.duolingo.com/vocabulary/overview?", cookies=self.cookies, headers=self.headers).text
