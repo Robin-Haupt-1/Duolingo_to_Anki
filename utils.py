@@ -6,7 +6,6 @@ import socket
 import os
 import urllib.parse
 import urllib.request
-from .constants import DONE_FOLDER
 from .lib import termcolor
 import datetime
 from aqt import mw
@@ -193,53 +192,3 @@ def wait_for_internet_connection():
         time.sleep(1)
     return True
 
-
-def all_imported_words():
-    """Return all words that have already been imported into Anki"""
-    with os.scandir(DONE_FOLDER) as files:
-        files = [open(file.path, "r", encoding="utf-8").read().split("\n") for file in files]
-        words = [x.strip() for file in files for x in file if (x and not x[0] == "#")]
-        return list(set(words))
-i
-
-def update_tampermonkey_list():
-    """Refresh the list of all imported words that the tampermonkey script reads"""
-    with open(r"/opt/lampp/htdocs/imported dict.cc.txt", "w+", encoding="utf-8") as file:
-        file.write("\n".join(all_imported_words()))
-
-    # update the json of all ew anki cards for forgetting them through dict.cc Tampermonkey
-    with open(r"/opt/lampp/htdocs/imported dict.cc card.json", "w+", encoding="utf-8") as file:
-        new_json = {}
-        old_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"note:\_\_English (from Dict.cc)" -is:suspended -is:new')]
-        new_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"note:\_\_English (from Dict.cc) (new)" -is:suspended -is:new')]
-        for card in old_cards + new_cards:
-            note = card.note()
-            en = ""
-            de = []
-            for (name, value) in note.items():
-                if name == "Englisch":
-                    en = value
-                if name.startswith("Deutsch") and value:
-                    de.append(value)
-            de = "   /   ".join(de)
-            new_json[en] = {"de": de, "id": card.id}
-            # print(note.fields["Deutsch"])
-        file.write(json.dumps(new_json))
-
-
-def unsuspend_new_cards():
-    """unsuspend ew that have been imported 3 days ago or earlier and had been automatically suspended"""
-    # reactivate common and rare words after different time intervals
-    normal_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"deck:All::Audio::Sprachen::🇺🇸 Englisch::_New" is:suspended is:new')]
-    normal_cards = [card for card in normal_cards if datetime.datetime.now().timestamp() - card.mod > 3 * 86400]
-    rare_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"deck:All::Audio::Sprachen::🇺🇸 Englisch::_New (rare)" is:suspended is:new')]
-    rare_cards = [card for card in rare_cards if datetime.datetime.now().timestamp() - card.mod > 6 * 86400]
-
-    if not (normal_cards or rare_cards):
-        return
-
-    log(f"{len(normal_cards)} new common and {len(rare_cards)} new rare cards to unsuspend")
-    log(f"Card ids: {normal_cards + rare_cards}")
-    for card in normal_cards + rare_cards:
-        card.queue = anki.consts.QUEUE_TYPE_NEW
-        card.flush()
