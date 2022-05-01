@@ -70,7 +70,7 @@ class Duo:
         website = requests.get("https://www.duolingo.com/vocabulary/overview?", cookies=self.cookies, headers=self.headers).text
         # print(json.dumps(json.loads(website), indent=2))
         words = json.loads(website)
-        self.WORDS_DECK_NAME = f'Duolingo {words["language_string"]}'
+        self.WORDS_DECK_NAME = f'Duolingo Words::Duolingo {words["language_string"]}'
         self.SENTENCES_DECK_NAME = f'Duolingo {words["language_string"]} Alternative_forms'
         print("Language: " + words["language_string"])
         # get already imported words
@@ -207,9 +207,6 @@ class Duo:
 
     def update_occurrences(self):
         """Delay new cards for a few days (with specific settings for different decks) and activate them again after the specified time has passed"""
-
-        deck_config = [{"deck": "All::1) Sprachen::💬 Begriffe", "delay": 3}, {"deck": "All::1) Sprachen::🇺🇸 Englisch::_New", "delay": 6}, {"deck": "All::1) Sprachen::🇺🇸 Englisch::_New (rare)", "delay": 3}, {"deck": "All", "delay": 1}]
-        seen_cards = []
 
         all_notes = mw.col.find_notes(f'"deck:{self.SENTENCES_DECK_NAME}"')
 
