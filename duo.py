@@ -124,10 +124,10 @@ class Duo:
                     note["md5"] = md5
                     if form["tts"]:
                         try:
-                            audio_path = os.path.join(MEDIA_FOLDER, f"duolingo-{detail['from_language']}-alternative-form-{md5}.ogg")
+                            audio_path = os.path.join(MEDIA_FOLDER, f"duolingo-{detail['learning_language']}-alternative-form-{md5}.mp3")
                             with open(audio_path, "wb") as file:
                                 file.write(loadurl(form["tts"]).content)
-                                note["Audio"] = f"[sound:duolingo-{detail['from_language']}-alternative-form-{md5}.ogg]"
+                                note["Audio"] = f"[sound:duolingo-{detail['learning_language']}-alternative-form-{md5}.mp3]"
 
                         except Exception as e:
                             print(e)
