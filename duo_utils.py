@@ -103,6 +103,7 @@ def loadurl(url, folder=r"/hdd/Software Engineering/PyCharm/2021 Q1/.pkl", heade
             if error_delay:
                 time.sleep(error_delay)
 
+
 def get_phrasefinder(en):
     """Use the phrasefinder.io API to determine how common an english word is"""
     params = {'corpus': 'eng-us', 'query': urllib.parse.quote(en), 'topk': 20, 'format': 'tsv'}
@@ -113,4 +114,3 @@ def get_phrasefinder(en):
     except Exception as e:
         # If the word can't be found, return 0
         return 0
-
